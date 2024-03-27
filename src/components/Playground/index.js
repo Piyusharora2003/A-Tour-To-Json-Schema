@@ -76,6 +76,9 @@ function Playground() {
     },{
         name: "Tools",
         link: "https://json-schema.org/implementations"
+    },{
+        name: "Github",
+        link: "https://github.com/Piyusharora2003/A-Tour-To-Json-Schema/"
     }]
     
     function moveToNextPage(){
