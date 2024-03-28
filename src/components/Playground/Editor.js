@@ -1,17 +1,18 @@
-import React , { useEffect, useRef } from 'react'
+import React  from 'react'
 import Editor from '@monaco-editor/react';
 
 function Edito({code,setCode}) {
 
   return (
-    <div className='h-full border-4 mt-12 me-2 '> 
+    <div className='h-3/4 w-98p '>
       <Editor
       formatOnPaste = "true" 
+      theme='vs-dark'
       defaultLanguage="json"
-      defaultValue={code}
-      onChange={(val)=>{
-        setCode(val)
-      }}
+      defaultValue='{
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}'
+      onMount={setCode}
     />
     </div>
   )

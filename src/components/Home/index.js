@@ -107,7 +107,7 @@ function Home() {
 
         </div> */}
             <div className={styles.container} onClick={() => {
-                if(open == false) set(state => !state);
+                if(open === false) set(state => !state);
             }}>
                 <Trail open={open}>
                     <span className='py-3 my-6'>A Tour To</span>

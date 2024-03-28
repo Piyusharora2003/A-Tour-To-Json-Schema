@@ -1,12 +1,13 @@
-import React,{useState} from 'react';
+import React,{useRef} from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { registerSchema, unregisterSchema, validate } from "@hyperjump/json-schema/draft-2020-12";
-import { pages } from '../../Problems.js';
+import { newPages, pages } from '../../Problems.js';
 
 import Navbar from '../Navbar/Navbar.js';
-import ProblemSetter from "./ProblemSetter.js"
 import Edito from "./Editor.js"
 import TheoryPage from './TheoryPage.js';
+import Sidebar from '../Sidebar/Sidebar.js';
+
 
 // @description:
 //  Checks for any syntaxical error if error return syntax error else return (all tc's not cleared return wrong tc else navigate to next page)  
@@ -18,26 +19,14 @@ async function RunUserSchema(schema,testCases,moveToNextPage){
 
         for(let i in testCases){
             const output = checkfn(testCases[i].input);
-            console.log(i+1,output.valid,testCases[i].output);
             if(output.valid !== testCases[i].output){
-                console.log(output);
+                console.log(testCases[i].input);
+                alert("Wrong submission Input: ", JSON.stringify(testCases[i].input));
                 if(typeof testCases[i].input === "object"){
                     testCases[i].input = JSON.stringify(testCases[i].input);
                 }
                 // wrong answer , testcase : testcases[i].input, expectedOutput: testCases[i].output
-                const elem = document.getElementById("wronganswer");
-                elem.innerHTML=`<div>
-                    Wrong answer at Testcase ${i+1}:
-                    <div class="ms-6">
-                        INPUT: ${String(testCases[i].input)} 
-                    </div>
-                    <div class="ms-6">
-                        Expected Output: ${testCases[i].output}
-                    </div>
-                    <div class="ms-6">
-                        Explaination: ${testCases[i].explaination}
-                    </div>
-                </div>`
+                // const elem = document.getElementById("wronganswer");
                 return;
             }
         }
@@ -55,20 +44,17 @@ async function RunUserSchema(schema,testCases,moveToNextPage){
     }
 }
 
-
-
 function Playground() {
     let { pageNumber } = useParams();
+    const editorRef = useRef(null);
+    function code(){ 
+        return editorRef.current.getValue();
+    }
     const navigate = useNavigate();
     let snipet = `{\n   "$schema": "https://json-schema.org/draft/2020-12/schema",\n}`;
-    if(pages[pageNumber-1].pageCategory === "Theory" && pages[pageNumber-1].exampleSnippet !== undefined){
-        snipet = JSON.stringify(pages[pageNumber-1].exampleSnippet);
-    }
-    /* TODO: Change useState to UseRef. */
-    const [code, setCode] = useState(
-        snipet
-      );
-
+    function setCode(editor,monaco){
+        editorRef.current = editor;
+    } 
     
       const navlinks = [{
         name:"Docs",
@@ -82,7 +68,7 @@ function Playground() {
     }]
     
     function moveToNextPage(){
-        const nextPage = Number(pageNumber)+1 > pages.length ? 1 : Number(pageNumber) + 1  ;
+        const nextPage = Number(pageNumber)+1 > newPages.length ? 1 : Number(pageNumber) + 1  ;
         navigate(`/learn/playground/${nextPage}`);
     }
 
@@ -92,36 +78,34 @@ function Playground() {
     }
 
     function DecideComponent(){
-        if(pages[pageNumber-1].pageCategory === "Theory") return<TheoryPage desc={pages[pageNumber-1]}/>
-        else return <ProblemSetter desc={pages[pageNumber-1]}/>
-    }
-    
-  return (
-    <div className='h-dvh bg-gray-100'>
-        <Navbar navlinks={navlinks}/>
-        <div className='w-full  md:flex md:h-5/6 '>
-            <div className='md:w-1/2 '>
-                    <DecideComponent/>
-                    {/* TODO: Apply check for pageNumber > problems.length */}
-            </div>
-            <div className='h-full  md:w-1/2 flex flex-col justify-between'>
+        if(newPages[pageNumber-1].pageType === "Blog") return <TheoryPage desc={newPages[pageNumber-1]}/>
+        else return (
+            <div className='flex h-full bg-zinc-700'>
+                <div className='w-1/2 h-full '>
+                    <TheoryPage desc={newPages[3]}/>
+                </div>
+                <div className='h-full  md:w-1/2 flex flex-col '>
                 <Edito code ={code} setCode = {setCode}/>
-                <div className='w-full flex justify-end z-50'>
+                <div className='w-full flex justify-center z-50'>
                     <button className='border-2 me-6 px-2  rounded text-lg border-yellow-700 bg-amber-500 z-50' onClick={(e)=>{moveToPreviousPage()}}>Prev</button>
                     <button className='border-2 me-6 px-2  rounded text-lg border-yellow-700 bg-amber-500 z-50' onClick={(e)=>{
-                        if(pages[pageNumber-1].pageCategory === "Question"){
-                            RunUserSchema(code,pages[pageNumber-1].testcases,moveToNextPage)
-                        }else{
-                            moveToNextPage()
-                        }
+                            RunUserSchema(code(),newPages[pageNumber-1].testcases,moveToNextPage)                        
                         }}>Submit</button>
                     <button className='border-2 me-6 px-2  rounded text-lg border-yellow-700 bg-amber-500 z-50' onClick={(e)=>{moveToNextPage()}}>Next</button>
                 </div>
             </div>
+            </div>
+        )
+    }
+    return (
+        <div className='bg-gray-100'>
+            <Navbar navlinks={navlinks}/>
+            <div className='flex '>
+                <div className='w-1/5'><Sidebar/></div>
+                <div className='bg-sky-100 w-4/5'><DecideComponent/></div>
+            </div>
         </div>
-        <div id='wronganswer'></div>
-    </div>
-  )
+        )
 }
 
 export default Playground;
